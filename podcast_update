@@ -1,0 +1,29 @@
+#!/bin/sh
+
+mp3s=$(mktemp '/tmp/podcast_update_mp3s.XXXXXX')
+oggs=$(mktemp '/tmp/podcast_update_oggs.XXXXXX')
+missing=$(mktemp '/tmp/podcast_update_missing.XXXXXX')
+tmpdir=$(mktemp -d '/tmp/podcast_update_dir.XXXXXX')
+
+git checkout ogg
+ls *.ogg | sed 's/ogg$//' | sort >"$oggs"
+git checkout master
+ls *.mp3 | sed 's/mp3$//' | sort >"$mp3s"
+diff "$mp3s" "$oggs" | grep '^<' | awk '{ print($2) }' >"$missing"
+
+for i in $(cat "$missing"); do
+	k=$(echo "$i" | sed 's/$/mp3/')
+	cp "$k" "$tmpdir"
+done
+
+git checkout ogg
+
+for i in $(ls "$tmpdir"); do
+	j=$(echo "$i" | sed 's/mp3$/ogg/')
+	ffmpeg -i "$tmpdir/$k" -f ogg "$j"
+done
+
+git checkout master
+
+rm "$mp3s" "$oggs" "$missing"
+rm -r "$tmpdir"
