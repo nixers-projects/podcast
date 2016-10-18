@@ -23,7 +23,5 @@ for i in $(ls "$tmpdir"); do
 	ffmpeg -i "$tmpdir/$k" -f ogg "$j"
 done
 
-git checkout master
-
 rm "$mp3s" "$oggs" "$missing"
 rm -r "$tmpdir"
